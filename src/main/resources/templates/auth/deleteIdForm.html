@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회원탈퇴</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .withdrawal-container {
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h2 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    p {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background-color: #d9534f;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      width: 130px;
+      display: inline-block;
+    }
+
+    .return-btn {
+      background-color: #5a6268;
+    }
+  </style>
+
+</head>
+<body>
+
+<div class="withdrawal-container">
+  <h2>회원탈퇴</h2>
+  <p>정말로 회원탈퇴를 하시겠습니까?</p>
+
+  <div class="button-container">
+    <a class="btn" th:data-user-id="${session.loginUser.id}" onclick="confirmWithdrawal(this)">회원 탈퇴</a>
+
+    <a class="btn return-btn" onclick="history.back()">돌아가기</a>
+  </div>
+</div>
+
+<!-- 📌 script 태그를 body 끝에 위치시킴 -->
+
+<script>
+  function confirmWithdrawal(element) {
+
+    const userId = element.getAttribute("data-user-id");
+
+    console.log("userId:", userId);
+
+    if (!userId) {
+      alert("회원 ID를 찾을 수 없습니다.");
+      return;
+    }
+
+    if (confirm("정말로 회원탈퇴 하시겠습니까?")) {
+
+      fetch("/users/remove", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: userId })
+      })
+              .then(response => {
+
+                if (!response.ok) {
+                  return response.json().then(error => {
+                    alert(error.message);
+                    throw new Error(error.message);
+                  }).catch(() => {
+                    throw new Error("서버 오류 발생");
+                  });
+
+                }
+                <!--return response.json();-->
+
+                return response.text().then(text => text ? JSON.parse(text) : {});
+
+              })
+              .then(data => {
+                alert("회원탈퇴가 완료되었습니다.");
+                window.location.href = "logout";
+              })
+              .catch(error => {
+                console.error("회원탈퇴 요청 중 오류 발생:", error);
+                alert("회원탈퇴 처리 중 오류가 발생했습니다.");
+              });
+
+    } else {
+      alert("회원탈퇴가 취소되었습니다.");
+    }
+
+  }
+</script>
+</body>
+</html>
